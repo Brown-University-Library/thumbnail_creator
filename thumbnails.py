@@ -45,23 +45,25 @@ class ThumbnailCreator(object):
         if force == False and self._has_thumbnail(datastreams):
             self.logger.info('%s: thumbnail datastream already exists.' % pid)
         else:
-            thumbnail = self._get_thumbnail(pid, datastreams)
-            if thumbnail:
-                obj.thumbnail.content = thumbnail
+            thumbnail_url = self._get_thumbnail_url(pid)
+            if thumbnail_url:
+                obj.thumbnail.ds_location = thumbnail_url
+                obj.thumbnail.label = 'thumbnail'
                 try:
                     obj.save()
                     self.logger.info('%s: thumbnail saved.' % pid)
                 except Exception as e:
                     self.logger.error('%s: exception saving changes: %s' % (pid, repr(e)))
 
-    def _get_thumbnail(self, pid, datastreams):
-        resp = requests.get(self._build_thumbnail_svc_uri(pid))
+    def _get_thumbnail_url(self, pid):
+        url = self._build_thumbnail_svc_uri(pid)
+        resp = requests.get(url)
         if resp.ok:
             #see if there's a history - if we got a redirect, don't return the content
             if resp.history:
                 self.logger.warning('%s: got a redirect from thumbnail svc - new url: %s' % (pid, resp.url))
             else:
-                return resp.content
+                return url
         else:
             self.logger.error('%s: error from thumbnail svc - url %s' % (pid, djatoka_url))
             self.logger.error('%s: thumbnail response: %s %s' % (pid, resp.status_code, resp.text))
