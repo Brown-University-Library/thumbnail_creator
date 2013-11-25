@@ -65,7 +65,7 @@ class ThumbnailCreator(object):
             else:
                 return url
         else:
-            self.logger.error('%s: error from thumbnail svc - url %s' % (pid, djatoka_url))
+            self.logger.error('%s: error from thumbnail svc - url %s' % (pid, url))
             self.logger.error('%s: thumbnail response: %s %s' % (pid, resp.status_code, resp.text))
 
     def _build_thumbnail_svc_uri(self, pid):
