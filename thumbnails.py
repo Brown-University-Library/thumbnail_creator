@@ -69,7 +69,7 @@ class ThumbnailCreator(object):
             self.logger.error('%s: thumbnail response: %s %s' % (pid, resp.status_code, resp.text))
 
     def _build_thumbnail_svc_uri(self, pid):
-        return 'https://%s/viewers/image/thumbnail/%s/' % (self.thumbnail_server, pid)
+        return '%sviewers/image/thumbnail/%s/' % (self.thumbnail_server, pid)
 
     def _has_thumbnail(self, datastreams):
         THUMBNAIL_DATASTREAMS = ['thumbnail', 'THUMBNAIL', 'Thumbnail']
@@ -82,11 +82,11 @@ class ThumbnailCreator(object):
 
 
 logger = setup_logger('logs/thumbnail_creator.log')
-fedora_root = 'https://%s/fedora/' % get_env_setting('FEDORA_SERVER')
+fedora_root = get_env_setting('FEDORA_ROOT')
 fedora_user = get_env_setting('FEDORA_USER')
 fedora_pass = get_env_setting('FEDORA_PASS')
 repo = Repository(root=fedora_root, username=fedora_user, password=fedora_pass)
-thumbnail_host = get_env_setting('FEDORA_SERVER')
+thumbnail_host = get_env_setting('SERVER_ROOT')
 tc = ThumbnailCreator(logger, repo, thumbnail_host)
 
 
