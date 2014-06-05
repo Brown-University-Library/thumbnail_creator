@@ -42,21 +42,23 @@ class ThumbnailCreator(object):
         #get object & see if there's a thumbnail
         obj = self.repo.get_object(pid=pid, type=MasterImage)
         datastreams = obj.ds_list
-        if force == False and self._has_thumbnail(datastreams):
+        if not force and self._has_thumbnail(datastreams):
             self.logger.info('%s: thumbnail datastream already exists.' % pid)
         else:
-            thumbnail_url = self._get_thumbnail_url(pid)
+            thumbnail_url = self._get_thumbnail_url(pid, force=force)
             if thumbnail_url:
                 obj.thumbnail.ds_location = thumbnail_url
                 obj.thumbnail.label = 'thumbnail'
                 try:
                     obj.save()
-                    self.logger.info('%s: thumbnail saved.' % pid)
+                    self.logger.info('%s: thumbnail from %s saved.' % (pid, thumbnail_url))
                 except Exception as e:
                     self.logger.error('%s: exception saving changes: %s' % (pid, repr(e)))
+            else:
+                self.logger.warning('no thumbnail_url')
 
-    def _get_thumbnail_url(self, pid):
-        url = self._build_thumbnail_svc_uri(pid)
+    def _get_thumbnail_url(self, pid, force):
+        url = self._build_thumbnail_svc_uri(pid, force)
         resp = requests.get(url)
         if resp.ok:
             #see if there's a history - if we got a redirect, don't return the content
@@ -68,8 +70,11 @@ class ThumbnailCreator(object):
             self.logger.error('%s: error from thumbnail svc - url %s' % (pid, url))
             self.logger.error('%s: thumbnail response: %s %s' % (pid, resp.status_code, resp.text))
 
-    def _build_thumbnail_svc_uri(self, pid):
-        return '%sviewers/image/thumbnail/%s/' % (self.thumbnail_server, pid)
+    def _build_thumbnail_svc_uri(self, pid, force):
+        if force:
+            return '%sviewers/image/thumbnail/%s/regenerate/' % (self.thumbnail_server, pid)
+        else:
+            return '%sviewers/image/thumbnail/%s/' % (self.thumbnail_server, pid)
 
     def _has_thumbnail(self, datastreams):
         THUMBNAIL_DATASTREAMS = ['thumbnail', 'THUMBNAIL', 'Thumbnail']
